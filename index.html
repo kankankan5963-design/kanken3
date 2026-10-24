@@ -102,6 +102,17 @@ h1{font-size:1.25rem;margin:0;font-weight:900;letter-spacing:.02em}
 .ch.right{border-color:var(--ok);background:var(--ok-soft);box-shadow:0 4px 0 var(--ok)}
 .ch.wrong{border-color:var(--shu);background:var(--shu-soft);box-shadow:0 4px 0 var(--shu)}
 .ch.dim{opacity:.45}
+.typebox{display:flex;flex-direction:column;gap:10px}
+.typebox input{width:100%;font-size:1.6rem;font-family:var(--font-ui);font-weight:700;text-align:center;padding:14px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.typebox input:focus{outline:none;border-color:var(--ai)}
+.typebox input.right{border-color:var(--ok);background:var(--ok-soft)}
+.typebox input.wrong{border-color:var(--shu);background:var(--shu-soft)}
+.hintline{font-size:.8rem;color:var(--sub);text-align:center}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:700;font-size:.92rem}
+.toggle small{display:block;color:var(--sub);font-weight:500;font-size:.75rem}
+.sw{flex:none;width:52px;height:30px;border-radius:99px;background:var(--line);position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--card);transition:left .2s}
+.sw.on{background:var(--ok)} .sw.on::after{left:25px}
 .ch[disabled]{cursor:default}
 .fb{border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .fb.ok{background:var(--ok-soft)} .fb.ng{background:var(--shu-soft)}
@@ -672,6 +683,10 @@ function apiGetState(){
   return fetch(API+"?action=state",{credentials:"omit"}).then(r=>r.json()).then(j=>j&&j.state||"");
 }
 let syncTimer=null, syncState="";
+const TKEY="kanken3-typeyomi";
+function typeYomi(){ try{ return localStorage.getItem(TKEY)!=="off"; }catch(e){ return true; } }
+function setTypeYomi(on){ try{ localStorage.setItem(TKEY,on?"on":"off"); }catch(e){} }
+function kanaNorm(x){ return String(x||"").normalize("NFKC").replace(/[\s　]/g,"").replace(/[\u30a1-\u30f6]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)); }
 function save(){
   S.updated=Date.now();
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
@@ -761,6 +776,7 @@ function home(){
     <button class="sub-btn red" id="weak"${wk?"":" disabled"}>苦手だけ特訓<small>${wk?wk+"問":"まだありません"}</small></button>
     <button class="sub-btn gold" id="hot">★よく出る特訓<small>未習得 ${hot.length-hotM}問</small></button>
   </div>
+  <button class="toggle" id="tgl" aria-pressed="${typeYomi()}"><span>読みの問題は入力して答える<small>${typeYomi()?"ON：ひらがなで書いて答える（本番に近い）":"OFF：4つから選ぶ"}</small></span><span class="sw ${typeYomi()?"on":""}"></span></button>
   <div class="sec-title">分野べつ練習</div>
   <div class="legend"><span><i style="background:var(--ok)"></i>覚えた</span><span><i style="background:color-mix(in srgb,var(--ok) 35%,var(--ai-soft))"></i>練習中</span><span><i style="background:var(--ai-soft)"></i>まだ</span></div>
   <div class="cats">${catHtml}</div>
@@ -778,6 +794,7 @@ function home(){
     start(shuffle(pick.slice(0,10)),"cat");
   });
   app.querySelector("#note").onclick=note;
+  app.querySelector("#tgl").onclick=()=>{ setTypeYomi(!typeYomi()); home(); };
   app.querySelector("#reset").onclick=()=>{
     app.querySelector("#cf").innerHTML=`<div class="confirm">すべての記録（連続日数・覚えた問題）を消します。よろしいですか？
       <div class="row"><button id="no">やめる</button><button class="dang" id="yes">消す</button></div></div>`;
@@ -800,6 +817,7 @@ function ask(){
   if(q.c==="kosei"){ choices=["ア","イ","ウ","エ","オ"]; cls="one"; }
   else choices=shuffle([q.a,...q.d]);
   const kj = ["kaki","doukun","yoji","taigi","okuri","goji"].includes(q.c);
+  const typed = q.c==="yomi" && typeYomi();
   const body = q.c==="bushu" ? `<div class="masu"><span>${q.q}</span></div>`
              : q.c==="kosei" ? `<div class="masu" style="width:auto;padding:0 14px;font-size:72px;height:110px"><span>${q.q}</span></div>`
              : `<div class="qtext">${fmt(esc(q.q))}</div>`;
@@ -809,20 +827,27 @@ function ask(){
     <span class="cnt">${sess.i+1}/${sess.queue.length}</span></div>
   <div class="qcard" id="card">
     <div class="chips"><span class="chip">${cat.n}</span>${q.h?'<span class="chip hot">★よく出る</span>':""}${cur.again?'<span class="chip again">もう一回</span>':""}</div>
-    <div class="inst">${cat.inst}</div>
+    <div class="inst">${typed?"線の部分の読みを、ひらがなで書こう":cat.inst}</div>
     ${body}
   </div>
-  <div class="choices ${cls}" id="ch">${choices.map(c=>
+  ${typed?`<form class="typebox" id="tf" autocomplete="off">
+    <input id="ti" type="text" lang="ja" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ひらがなで入力" aria-label="読みをひらがなで入力">
+    <div class="hintline">送りがながあるときは、送りがなもふくめて全部書いてね</div>
+    <button class="next" type="submit">こたえる</button></form>`:`<div class="choices ${cls}" id="ch">${choices.map(c=>
     q.c==="kosei" ? `<button class="ch sm" data-v="${c}"><b>${c}</b><span>${KOSEI[c]}</span></button>`
-                  : `<button class="ch ${kj&&c.length<=5?"kj":""}" data-v="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+                  : `<button class="ch ${kj&&c.length<=5?"kj":""}" data-v="${esc(c)}">${esc(c)}</button>`).join("")}</div>`}
   <div id="after"></div>`;
   app.querySelector("#x").onclick=home;
   app.querySelectorAll(".ch").forEach(b=>b.onclick=()=>answer(b.dataset.v,b));
+  if(typed){ const f=app.querySelector("#tf"), ti=app.querySelector("#ti");
+    f.onsubmit=e=>{ e.preventDefault(); const v=ti.value.trim(); if(!v){ ti.focus(); return; } answer(v,null,true); };
+    setTimeout(()=>{ try{ ti.focus(); }catch(e){} },50); }
   window.scrollTo(0,0);
 }
 
-function answer(v,btn){
-  const cur=sess.queue[sess.i], q=cur.q, ok=v===q.a;
+function answer(v,btn,typed){
+  const cur=sess.queue[sess.i], q=cur.q, ok=typed ? kanaNorm(v)===kanaNorm(q.a) : v===q.a;
+  if(typed){ const ti=app.querySelector("#ti"), sb=app.querySelector("#tf button"); if(ti){ ti.disabled=true; ti.classList.add(ok?"right":"wrong"); } if(sb) sb.remove(); }
   app.querySelectorAll(".ch").forEach(b=>{ b.disabled=true;
     if(b.dataset.v===q.a) b.classList.add("right"); else if(b===btn) b.classList.add("wrong"); else b.classList.add("dim"); });
   const card=app.querySelector("#card");
