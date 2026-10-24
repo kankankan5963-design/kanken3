@@ -3,7 +3,7 @@
 <title>漢検3級 毎日ドリル</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Maru+Gothic:wght@500;700;900&family=DotGothic16&display=swap">
 <style>
 /* Layout: one narrow phone column; home = stats + start, quiz = card + 2x2 choices, marks drawn like a red pen */
 :root{
@@ -11,6 +11,7 @@
   --ai:#24357a; --ai-soft:#dfe5f6; --shu:#d8402b; --shu-soft:#fbe3de;
   --ok:#1f8a5b; --ok-soft:#dcf2e7; --gold:#d99a14; --gold-soft:#fbefd2;
   --font-ui:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+  --font-px:"DotGothic16","Zen Maru Gothic",monospace;
   --font-kanji:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -105,6 +106,33 @@ h1{font-size:1.25rem;margin:0;font-weight:900;letter-spacing:.02em}
 .typebox{display:flex;flex-direction:column;gap:10px}
 .qtext .okuri{font-weight:600}
 /* game */
+.px{display:block;image-rendering:pixelated;shape-rendering:crispEdges}
+.pxframe{flex:none;background:#20243a;border:3px solid #0f1220;box-shadow:inset 0 0 0 2px #3a4166;border-radius:6px;padding:5px;display:flex;align-items:center;justify-content:center}
+.lvhead{display:flex;align-items:center;gap:10px;min-width:0}
+.lvname{font-family:var(--font-px)}
+.titles{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.ttl{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.62rem;text-align:center;font-family:var(--font-px);line-height:1.25}
+.ttl.lock{color:var(--sub)}
+.ttl.now .pxframe{border-color:var(--gold);box-shadow:inset 0 0 0 2px var(--gold)}
+.ovl{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.combo-big{font-family:var(--font-px);font-size:3.2rem;font-weight:400;color:#fff;text-align:center;line-height:1;
+  text-shadow:3px 3px 0 var(--shu),-2px -2px 0 #1a1626,2px -2px 0 #1a1626,-2px 2px 0 #1a1626,2px 2px 0 #1a1626;
+  animation:comboAnim 1.1s cubic-bezier(.2,.8,.3,1) forwards}
+.combo-big small{display:block;font-size:1.1rem;margin-top:6px;color:var(--gold);text-shadow:2px 2px 0 #1a1626}
+@keyframes comboAnim{0%{opacity:0;transform:scale(.3)}18%{opacity:1;transform:scale(1.35)}32%{transform:scale(1)}65%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-110px) scale(.9)}}
+.lvl-ovl{pointer-events:auto;background:rgba(10,12,24,.82);flex-direction:column;gap:14px;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.lvl-ovl .t1{font-family:var(--font-px);font-size:2.6rem;color:var(--gold);text-shadow:3px 3px 0 #000;animation:lvpop .7s cubic-bezier(.2,.8,.3,1.4)}
+.lvl-ovl .t2{font-family:var(--font-px);font-size:4.2rem;color:#fff;line-height:1;text-shadow:4px 4px 0 var(--shu);animation:lvpop .9s cubic-bezier(.2,.8,.3,1.4)}
+.lvl-ovl .t3{font-family:var(--font-px);font-size:1.1rem;color:#fff;text-align:center;line-height:1.6;padding-inline:16px}
+.lvl-ovl .t3 b{color:var(--gold);font-weight:400;font-size:1.35rem}
+.lvl-ovl .t4{font-size:.8rem;color:#c9cbe0;margin-top:6px}
+.lvl-ovl .big{animation:spin-in 1s cubic-bezier(.2,.8,.3,1.3)}
+@keyframes lvpop{0%{transform:scale(0)}100%{transform:scale(1)}}
+@keyframes spin-in{0%{transform:scale(0) rotate(-180deg)}100%{transform:scale(1) rotate(0)}}
+.spark{position:fixed;width:8px;height:8px;z-index:51;pointer-events:none;animation:spark 1.2s ease-out forwards}
+@keyframes spark{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+@media (prefers-reduced-motion:reduce){.combo-big,.lvl-ovl .t1,.lvl-ovl .t2,.lvl-ovl .big{animation:none}}
 .lvcard{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
 .lvbadge{width:64px;height:64px;border-radius:18px;background:linear-gradient(145deg,var(--gold),color-mix(in srgb,var(--gold) 55%,var(--shu)));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;box-shadow:0 4px 0 color-mix(in srgb,var(--gold) 55%,#000)}
 .lvbadge small{font-size:.65rem;font-weight:700;letter-spacing:.06em}
@@ -774,7 +802,16 @@ function fmt(s){
 function esc(s){ return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
 // ===== ゲーム要素（レベル・XP・バッジ）=====
-const TITLES=[[1,"漢字たまご"],[3,"漢字ひよこ"],[5,"漢字見習い"],[8,"漢字戦士"],[12,"漢字ナイト"],[16,"漢字博士"],[20,"漢字名人"],[25,"漢字王"],[30,"漢検マスター"]];
+const TITLES=[[1,"漢字たまご","egg"],[3,"漢字ひよこ","chick"],[5,"漢字見習い","wood"],[8,"漢字戦士","sword"],[12,"漢字ナイト","helm"],[16,"漢字博士","wizard"],[20,"漢字名人","ninja"],[25,"漢字王","crown"],[30,"漢検マスター","dragon"]];
+const SPR={"egg":["....kkkk....","...kwwwwk...","..kwwwwwwk..","..kwwbbwwk..",".kwwwbbwwwk.",".kwwwwwwwwk.",".kwbwwwwwwk.",".kwbbwwwbwk.",".kwwwwwwbwk.","..kwwwwwwk..","...kwwwwk...","....kkkk...."],"chick":["....kkkk....","...kyyyyk...","..kyyyyyyk..","..kykyykyk..","..kyyooyyk..",".kyyyyyyyyk.","kyyyyyyyyyyk","kyoyyyyyyoyk",".kyyyyyyyyk.","..kyyyyyyk..","...kokkok...","............"],"wood":["..........kk",".........klk","........kltk",".......kltk.","......kltk..",".....kltk...","..k.kltk....","..kkltk.....","...ktk......","..ktkk......",".ktk.kk.....",".kk........."],"sword":["..........kk",".........ksk","........kswk",".......kswk.","......kswk..",".....kswk...",".kk.kswk....",".kGkswk.....","..kGGk......","..krkGk.....",".krk.kk.....",".kk........."],"helm":["......rr....",".....rrk....","...kkkkkk...","..kssssssk..",".kssswsssdk.",".ksskkkksdk.",".kskkkkkksk.",".ksssssssdk.",".kssdsdssdk.",".ksssssssdk.","..kddddddk..","...kkkkkk..."],"wizard":[".......kk...","......kpuk..",".....kppuk..",".....kpyuk..","....kpyyyuk.","....kppypuk.","...kpppppuk.","...kppppppk.","..kpppppppuk","kkGGGGGGGGkk","kGGGGGGGGGGk",".kkkkkkkkkk."],"ninja":["...kkkkkk...","..kuuuuuuk..",".kuuuuuuuuk.",".kuuuuuuuuk.",".kkkkkkkkkk.",".kwwkuukwwk.",".kwkkuukkwk.",".kkkkkkkkkk.",".kuuuuuuuuk.",".kuuuuuurrk.","..kuuuuuukrr","...kkkkkk..r"],"crown":["............","..k..kk..k..",".kGk.kRk.kGk",".kGGkGGGkGGk",".kGGGGGGGGGk",".kGRGGuGGRGk",".kGGGGGGGGGk",".kyyyyyyyyyk",".kkkkkkkkkkk","............","............","............"],"dragon":["..kk....kk..",".krrk..krrk.",".krrrkkrrrk.","..krrrrrrk..",".krrrrrrrrkk","krrwkrrrrrrk","krrkkrrryyyk","krrrrrrkkkk.",".krrrrryk...","..krrrryyk..","...kkrrrryk.",".....kkkkk.."]};
+const PAL={k:"#1a1626",w:"#ffffff",b:"#9ad0ff",y:"#ffd84a",o:"#ff8a2a",r:"#e8403a",s:"#c9d3e0",d:"#6b7a90",t:"#8a5a2b",l:"#c48a4a",p:"#8b5cf6",u:"#3b4bd8",G:"#f2b632",R:"#ff5a7a"};
+function pxSvg(name,size,lock,cls){
+  const g=SPR[name]; let r="";
+  g.forEach((row,y)=>{ for(let x=0;x<row.length;x++){ const c=row[x]; if(c===".") continue;
+    r+=`<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${lock?(c==="k"?"#0d0f1c":"#3a4166"):PAL[c]}"/>`; } });
+  return `<svg class="px ${cls||""}" viewBox="0 0 12 12" width="${size}" height="${size}" aria-hidden="true">${r}</svg>`;
+}
+function spriteOf(L){ let t=TITLES[0][2]; TITLES.forEach(([l,,sp])=>{ if(L>=l) t=sp; }); return t; }
 function xpFor(L){ return 100*(L-1)+25*(L-1)*(L-2); }
 function lvOf(xp){ let L=1; while(xpFor(L+1)<=xp) L++; return L; }
 function titleOf(L){ let t=TITLES[0][1]; TITLES.forEach(([l,n])=>{ if(L>=l) t=n; }); return t; }
@@ -808,8 +845,45 @@ function checkBadges(){ const g=G(), got=[]; BADGES.forEach(([id,,,,fn])=>{ if(!
 function lvCard(){
   const g=G(), L=lvOf(g.xp), a=xpFor(L), b=xpFor(L+1), p=Math.round((g.xp-a)/(b-a)*100);
   return `<div class="lvcard"><div class="lvbadge"><small>LEVEL</small><b>${L}</b></div>
-    <div class="lvinfo"><div class="lvname">${titleOf(L)}</div><div class="xpbar"><i style="width:${p}%"></i></div>
+    <div class="lvinfo"><div class="lvhead"><span class="pxframe">${pxSvg(spriteOf(L),30)}</span><div class="lvname">${titleOf(L)}</div></div><div class="xpbar"><i style="width:${p}%"></i></div>
     <div class="xpnum"><span>${g.xp} XP</span><span>つぎのレベルまで ${b-g.xp} XP</span></div></div></div>`;
+}
+function titleShelf(){
+  const L=lvOf(G().xp), cur=titleOf(L);
+  return `<div class="titles">${TITLES.map(([l,n,sp])=>{ const has=L>=l;
+    return `<div class="ttl ${has?"":"lock"} ${n===cur?"now":""}"><span class="pxframe">${pxSvg(sp,40,!has)}</span><span>${has?n:"？？？"}</span><span style="color:var(--sub)">Lv${l}〜</span></div>`; }).join("")}</div>`;
+}
+function showCombo(n){
+  const o=document.createElement("div"); o.className="ovl";
+  o.innerHTML=`<div class="combo-big">${n} COMBO!<small>${n>=10?"すごすぎる！":n>=5?"いいね、その調子！":"ナイス！"}</small></div>`;
+  document.body.appendChild(o); setTimeout(()=>o.remove(),1150);
+}
+function sparks(){
+  const cols=["#f2b632","#ff5a7a","#9ad0ff","#3fbf5f","#ffffff"];
+  for(let i=0;i<36;i++){ const e=document.createElement("i"); e.className="spark";
+    const a=Math.random()*Math.PI*2, r=120+Math.random()*160;
+    e.style.left="50%"; e.style.top="45%"; e.style.background=cols[i%cols.length];
+    e.style.setProperty("--dx",Math.cos(a)*r+"px"); e.style.setProperty("--dy",Math.sin(a)*r+"px");
+    document.body.appendChild(e); setTimeout(()=>e.remove(),1300); }
+}
+function showLevelUp(L,oldL){
+  const newTitle=titleOf(L)!==titleOf(oldL);
+  const o=document.createElement("div"); o.className="ovl lvl-ovl"; o.setAttribute("role","dialog"); o.setAttribute("aria-label","レベルアップ");
+  o.innerHTML=`<div class="t1">LEVEL UP!</div>
+    <span class="pxframe big" style="padding:10px">${pxSvg(spriteOf(L),110)}</span>
+    <div class="t2">Lv.${L}</div>
+    <div class="t3">${newTitle?`新しい称号<br><b>「${titleOf(L)}」</b><br>を手に入れた！`:`称号「${titleOf(L)}」`}</div>
+    <div class="t4">タップしてつづける</div>`;
+  document.body.appendChild(o); sparks(); fanfare();
+  const close=()=>{ if(o.parentNode) o.remove(); };
+  o.onclick=close; setTimeout(close,3500);
+}
+function fanfare(){
+  if(!soundOn()) return;
+  try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+    [523,659,784,1047].forEach((f,i)=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type="square"; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t+i*.12); g.gain.exponentialRampToValueAtTime(.08,t+i*.12+.02); g.gain.exponentialRampToValueAtTime(0.0001,t+i*.12+(i===3?.5:.15));
+      o.connect(g).connect(actx.destination); o.start(t+i*.12); o.stop(t+i*.12+.55); }); }catch(e){}
 }
 function badgeShelf(newIds){
   const g=G();
@@ -846,6 +920,7 @@ function home(){
     return `<button class="cat" data-cat="${k}"><div class="nm">${v.n}<small>${m}/${qs.length}</small></div>
       <div class="bar"><i class="m" style="width:${m/qs.length*100}%"></i><i class="s" style="width:${s/qs.length*100}%"></i></div></button>`;
   }).join("");
+  if(checkBadges().length) save();
   const d=new Date(), wd="日月火水木金土"[d.getDay()];
   app.innerHTML=`
   <div class="top"><h1>漢検3級 毎日ドリル</h1><span class="date">${d.getMonth()+1}月${d.getDate()}日（${wd}）</span></div>
@@ -876,6 +951,8 @@ function home(){
   <div class="sec-title">分野べつ練習</div>
   <div class="legend"><span><i style="background:var(--ok)"></i>覚えた</span><span><i style="background:color-mix(in srgb,var(--ok) 35%,var(--ai-soft))"></i>練習中</span><span><i style="background:var(--ai-soft)"></i>まだ</span></div>
   <div class="cats">${catHtml}</div>
+  <div class="sec-title">称号コレクション</div>
+  ${titleShelf()}
   <div class="sec-title">バッジ（${G().b.length} / ${BADGES.length}）</div>
   ${badgeShelf()}
   <div class="foot"><button class="link" id="note">まちがいノートを見る</button><button class="link" id="reset">記録をリセット</button></div>
@@ -971,8 +1048,10 @@ function answer(v,btn,typed){
   // ゲーム：コンボとXP
   if(ok){ sess.combo++; sess.maxc=Math.max(sess.maxc,sess.combo); const bonus=Math.min(10,(sess.combo-1)*2); const add=(cur.again?3:10)+bonus; sess.xp+=add; sess.xpCombo+=bonus;
     if(!cur.again){ G().tc++; } G().best=Math.max(G().best,sess.combo);
+    const Lb=lvOf(G().xp); G().xp+=add; const La=lvOf(G().xp);
     card.insertAdjacentHTML("beforeend",`<div class="xpfloat">+${add} XP</div>`);
-    if(sess.combo>=3) app.querySelector(".chips").insertAdjacentHTML("beforeend",`<span class="combo">${sess.combo}コンボ！</span>`);
+    if(sess.combo>=3){ app.querySelector(".chips").insertAdjacentHTML("beforeend",`<span class="combo">${sess.combo}コンボ！</span>`); showCombo(sess.combo); }
+    if(La>Lb) setTimeout(()=>showLevelUp(La,Lb),sess.combo>=3?900:300);
   } else { sess.combo=0; }
   snd(ok);
   app.querySelector("#after").innerHTML=`
@@ -994,8 +1073,9 @@ function result(){
   const g=G();
   const bDaily = firstToday?50:0, bPerfect = (correct===total&&total>=10)?30:0, bStreak = firstToday?Math.min(50,streak()*5):0;
   const gained = sess.xp + bDaily + bPerfect + bStreak;
-  const before=g.xp; g.xp+=gained;
-  const L0=lvOf(before), L1=lvOf(g.xp);
+  const bonusOnly=bDaily+bPerfect+bStreak, beforeB=g.xp; g.xp+=bonusOnly;
+  const L0=sess.startLv, L1=lvOf(g.xp);
+  if(lvOf(g.xp)>lvOf(beforeB)) setTimeout(()=>showLevelUp(lvOf(g.xp),lvOf(beforeB)),500);
   const newB=checkBadges();
   save();
   const wrongs=ids.filter(id=>!sess.first[id]).map(id=>byId[id]);
@@ -1011,7 +1091,7 @@ function result(){
     <div style="font-weight:900">${msg}</div>
     ${sess.mode==="daily"?`<div style="color:var(--sub);font-size:.85rem">連続 ${streak()}日 達成中</div>`:""}
   </div>
-  ${L1>L0?`<div class="lvup">レベルアップ！<b>LEVEL ${L1}</b>${titleOf(L1)!==titleOf(L0)?`称号「${titleOf(L1)}」になった！`:`「${titleOf(L1)}」`}</div>`:""}
+  ${L1>L0?`<div class="lvup" style="display:flex;align-items:center;gap:14px;justify-content:center"><span class="pxframe">${pxSvg(spriteOf(L1),44)}</span><div style="text-align:left">今回のレベルアップ<b style="font-family:var(--font-px);font-weight:400">Lv.${L0} → Lv.${L1}</b>${titleOf(L1)!==titleOf(L0)?`称号「${titleOf(L1)}」ゲット！`:`「${titleOf(L1)}」`}</div></div>`:""}
   <div class="gain">
     <div class="row"><span>正解ポイント</span><b>+${sess.xp-sess.xpCombo} XP</b></div>
     ${sess.xpCombo?`<div class="row"><span>コンボボーナス（最高 ${sess.maxc}コンボ）</span><b>+${sess.xpCombo} XP</b></div>`:""}
